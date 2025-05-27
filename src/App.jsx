@@ -56,7 +56,7 @@ const selected_movie_list = [
 
 export default function App() {
   const [movies, setMovies] = useState(movie_list);
-
+  const [selectedMovies, setSelectedMovies] = useState(selected_movie_list);
   return (
     <>
       <Nav>
@@ -65,9 +65,13 @@ export default function App() {
         <NavSearchResult movies={movies} />
       </Nav>
       <Main>
-        <MovieListContainer>
+        <ListContainer>
           <MovieList movies={movies} />
-        </MovieListContainer>
+        </ListContainer>
+        <ListContainer>
+          <Summary selectedMovies={selectedMovies} />
+          <MyMovieList selectedMovies={selectedMovies} />
+        </ListContainer>
       </Main>
     </>
   );
@@ -116,16 +120,14 @@ function Main({ children }) {
   return (
     <main className="container">
       <div className="row mt-2">
-        <div className="col-md-9">{children}</div>
-        <div className="col-md-3">
-          <SelectedMovieListContainer />
-        </div>
+        <div className="col-md-9">{children[0]}</div>
+        <div className="col-md-3">{children[1]}</div>
       </div>
     </main>
   );
 }
 
-function MovieListContainer({ children }) {
+function ListContainer({ children }) {
   const [isOpen, setIsOpen] = useState(true);
 
   function handleOpenMovie() {
@@ -175,36 +177,6 @@ function Movie({ movie }) {
   );
 }
 
-function SelectedMovieListContainer() {
-  const [isOpen2, setIsOpen2] = useState(true);
-  const [selectedMovies, setSelectedMovies] = useState(selected_movie_list);
-
-  function handleSelectedOpenMovie() {
-    setIsOpen2((open) => !open);
-  }
-  return (
-    <div className="movie-list">
-      <button
-        className="btn btn-sm btn-outline-primary mb-2"
-        onClick={handleSelectedOpenMovie}
-      >
-        {isOpen2 ? (
-          <i className="bi bi-chevron-up"></i>
-        ) : (
-          <i className="bi bi-chevron-down"></i>
-        )}
-      </button>
-
-      {isOpen2 && (
-        <>
-          <Summary selectedMovies={selectedMovies} />
-          <MyMovieList selectedMovies={selectedMovies} />
-        </>
-      )}
-    </div>
-  );
-}
-
 function Summary({ selectedMovies }) {
   const avrRating =
     selectedMovies.reduce((acc, cur) => acc + cur.rating, 0) /
@@ -234,35 +206,35 @@ function Summary({ selectedMovies }) {
 function MyMovieList({ selectedMovies }) {
   return (
     <>
-      {selectedMovies.map((selectedMovies) => (
-        <MyListMovie selectedMovies={selectedMovies} />
+      {selectedMovies.map((selectedMovie) => (
+        <MyListMovie selectedMovie={selectedMovie} key={selectedMovie.Id} />
       ))}
     </>
   );
 }
 
-function MyListMovie({ selectedMovies }) {
+function MyListMovie({ selectedMovie }) {
   return (
-    <div className="card mb-2" key={selectedMovies.Id}>
+    <div className="card mb-2" key={selectedMovie.Id}>
       <div className="row">
         <div className="col-4">
           <img
-            src={selectedMovies.Poster}
-            alt={selectedMovies.Title}
+            src={selectedMovie.Poster}
+            alt={selectedMovie.Title}
             className="img-fluid rounded-start"
           />
         </div>
         <div className="col-8">
           <div className="card-body">
-            <h6 className="card-title">{selectedMovies.Title}</h6>
+            <h6 className="card-title">{selectedMovie.Title}</h6>
             <div className="d-flex justify-content-between">
               <p>
                 <i className="bi bi-star-fill text-warning me-1"></i>
-                <span>{selectedMovies.rating}</span>
+                <span>{selectedMovie.rating}</span>
               </p>
               <p>
                 <i className="bi bi-hourglass text-warning me-1"></i>
-                <span>{selectedMovies.duration} Dk</span>
+                <span>{selectedMovie.duration} Dk</span>
               </p>
             </div>
           </div>
