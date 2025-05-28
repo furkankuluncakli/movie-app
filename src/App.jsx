@@ -64,10 +64,9 @@ export default function App() {
   const [error, setError] = useState("");
   const [selectedMovie, setSelectedMovie] = useState(null);
 
-  console.log(selectedMovie);
 
   function handleSelectedMovie(id) {
-    setSelectedMovie(id);
+    setSelectedMovie(selectedMovie => selectedMovie === id ? null : id);
   }
 
   function handleUnselectedMovie() {
@@ -266,7 +265,12 @@ function MovieDetails({ selectedMovie, onUnselectedMovie }) {
 function Movie({ movie, onSelectedMovie, selectedMovieStyle }) {
   return (
     <div className="col mb-2" key={movie.id}>
-      <div className={`card movie ${selectedMovieStyle === movie.id ? "selectedMovieStyle" : ""}`} onClick={() => onSelectedMovie(movie.id)}>
+      <div
+        className={`card movie ${
+          selectedMovieStyle === movie.id ? "selectedMovieStyle" : ""
+        }`}
+        onClick={() => onSelectedMovie(movie.id)}
+      >
         <img
           src={
             `https://media.themoviedb.org/t/p/w440_and_h660_face` +
