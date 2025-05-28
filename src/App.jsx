@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 
 const movie_list = [
@@ -54,17 +54,28 @@ const selected_movie_list = [
   },
 ];
 
-const api_key = "c3a794a3386a1e9481790de74e0b3f75"
-const query = "last"
-
+const api_key = "c3a794a3386a1e9481790de74e0b3f75";
+const query = "car";
 
 export default function App() {
-  const [movies, setMovies] = useState(movie_list);
-  const [selectedMovies, setSelectedMovies] = useState(selected_movie_list);
+  const [movies, setMovies] = useState([]);
+  const [selectedMovies, setSelectedMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}`)
-    .then(res => res.json())
-      .then(data => console.log(data))
+  useEffect(function () {
+    setLoading(true);
+    async function getMovies() {
+      const res = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}`
+      );
+      const data = await res.json();
+      setMovies(data.results);
+      setLoading(false);
+    }
+
+    getMovies();
+  }, []);
+
   return (
     <>
       <Nav>
@@ -74,7 +85,7 @@ export default function App() {
       </Nav>
       <Main>
         <ListContainer>
-          <MovieList movies={movies} />
+          {loading ? <Loading /> : <MovieList movies={movies} />}
         </ListContainer>
         <ListContainer>
           <Summary selectedMovies={selectedMovies} />
@@ -82,6 +93,14 @@ export default function App() {
         </ListContainer>
       </Main>
     </>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="spinner-border" role="status">
+      <span className="sr-only"></span>
+    </div>
   );
 }
 
@@ -162,7 +181,7 @@ function MovieList({ movies }) {
   return (
     <div className="row row-cols-1 row-cols-md-3 row-cols-xl-4 g-4">
       {movies.map((movie) => (
-        <Movie movie={movie} key={movie.Id} />
+        <Movie movie={movie} key={movie.id} />
       ))}
     </div>
   );
@@ -170,15 +189,22 @@ function MovieList({ movies }) {
 
 function Movie({ movie }) {
   return (
-    <div className="col mb-2" key={movie.Id}>
+    <div className="col mb-2" key={movie.id}>
       <div className="card">
-        <img src={movie.Poster} alt={movie.Title} className="card-img-top" />
+        <img
+          src={
+            `https://media.themoviedb.org/t/p/w440_and_h660_face` +
+            movie.poster_path
+          }
+          alt={movie.title}
+          className="card-img-top"
+        />
         <div className="card-body">
-          <h6>{movie.Title}</h6>
+          <h6>{movie.title}</h6>
         </div>
         <div>
-          <i className="bi bi-calendar2-date me-1"></i>
-          <span>{movie.Year}</span>
+          <i className="bi bi-calendar2-date me-1 p-2"></i>
+          <span>{movie.release_date.slice(0, 4)}</span>
         </div>
       </div>
     </div>
