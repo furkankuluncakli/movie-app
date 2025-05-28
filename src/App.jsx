@@ -55,24 +55,41 @@ const selected_movie_list = [
 ];
 
 const api_key = "c3a794a3386a1e9481790de74e0b3f75";
-const query = "car";
+const query = "cadadsasdasdads";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [selectedMovies, setSelectedMovies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(function () {
-    setLoading(true);
     async function getMovies() {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}`
-      );
-      const data = await res.json();
-      setMovies(data.results);
+      try {
+        setLoading(true);
+        setError("");
+        const res = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}`
+        );
+
+        if (!res.ok) {
+          throw new Error("Bilinmeyen bir hata oluştu.");
+        }
+
+        const data = await res.json();
+
+        if (data.total_results === 0) {
+          throw new Error("Film bulunamadı");
+        }
+
+        setMovies(data.results);
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+      }
+
       setLoading(false);
     }
-
     getMovies();
   }, []);
 
@@ -85,7 +102,10 @@ export default function App() {
       </Nav>
       <Main>
         <ListContainer>
-          {loading ? <Loading /> : <MovieList movies={movies} />}
+          {/* {loading ? <Loading /> :  */}
+          {loading && <Loading />}
+          {!loading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </ListContainer>
         <ListContainer>
           <Summary selectedMovies={selectedMovies} />
@@ -102,6 +122,10 @@ function Loading() {
       <span className="sr-only"></span>
     </div>
   );
+}
+
+function ErrorMessage({ message }) {
+  return <div className="alert alert-danger">{message}</div>;
 }
 
 function Nav({ children }) {
@@ -212,12 +236,15 @@ function Movie({ movie }) {
 }
 
 function Summary({ selectedMovies }) {
-  const avrRating =
-    selectedMovies.reduce((acc, cur) => acc + cur.rating, 0) /
-    selectedMovies.length;
-  const avrDuration =
-    selectedMovies.reduce((acc, cur) => acc + cur.duration, 0) /
-    selectedMovies.length;
+  const avrRating = selectedMovies.reduce(
+    (acc, cur) => acc + cur.rating / selectedMovies.length,
+    0
+  );
+  const avrDuration = selectedMovies.reduce(
+    (acc, cur) => acc + cur.duration / selectedMovies.length,
+    0
+  );
+
   return (
     <div className="card mb-2">
       <div className="card-body">
