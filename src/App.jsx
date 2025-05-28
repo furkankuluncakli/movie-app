@@ -54,9 +54,17 @@ const selected_movie_list = [
   },
 ];
 
+const api_key = "c3a794a3386a1e9481790de74e0b3f75"
+const query = "last"
+
+
 export default function App() {
   const [movies, setMovies] = useState(movie_list);
   const [selectedMovies, setSelectedMovies] = useState(selected_movie_list);
+
+  fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}`)
+    .then(res => res.json())
+      .then(data => console.log(data))
   return (
     <>
       <Nav>
