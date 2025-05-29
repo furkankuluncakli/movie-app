@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 
-
-
 const getAverage = (array) =>
   array.reduce((sum, value) => sum + value / array.length, 0);
 
@@ -27,6 +25,12 @@ export default function App() {
   function handleAddToSelectedList(movie) {
     setSelectedMovies((selectedMovies) => [...selectedMovies, movie]);
     handleUnselectedMovie();
+  }
+
+  function handleDeleteFromList(id) {
+    setSelectedMovies((selectedMovies) =>
+      selectedMovies.filter((m) => m.id !== id)
+    );
   }
 
   useEffect(
@@ -99,7 +103,7 @@ export default function App() {
           ) : (
             <>
               <Summary selectedMovies={selectedMovies} />
-              <MyMovieList selectedMovies={selectedMovies} />
+              <MyMovieList selectedMovies={selectedMovies} onDeleteFromList={handleDeleteFromList}/>
             </>
           )}
         </ListContainer>
@@ -348,17 +352,17 @@ function Summary({ selectedMovies }) {
   );
 }
 
-function MyMovieList({ selectedMovies }) {
+function MyMovieList({ selectedMovies,onDeleteFromList }) {
   return (
     <>
       {selectedMovies.map((selectedMovie) => (
-        <MyListMovie selectedMovie={selectedMovie} key={selectedMovie.id} />
+        <MyListMovie selectedMovie={selectedMovie} key={selectedMovie.id} onDeleteFromList={onDeleteFromList} />
       ))}
     </>
   );
 }
 
-function MyListMovie({ selectedMovie }) {
+function MyListMovie({ selectedMovie, onDeleteFromList }) {
   return (
     <div className="card mb-2" key={selectedMovie.id}>
       <div className="row">
@@ -385,6 +389,7 @@ function MyListMovie({ selectedMovie }) {
                 <span>{selectedMovie.runtime} Dk</span>
               </p>
             </div>
+            <button className="btn btn-danger" onClick={() => onDeleteFromList(selectedMovie.id)}>Sil</button>
           </div>
         </div>
       </div>
