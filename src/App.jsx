@@ -1,58 +1,10 @@
 import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 
-const movie_list = [
-  {
-    Id: "769",
-    Title: "GoodFellas",
-    Year: "1990",
-    Poster:
-      "https://image.tmdb.org/t/p/original/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
-  },
-  {
-    Id: "120",
-    Title: "The Lord of the Rings",
-    Year: "2001",
-    Poster:
-      "https://image.tmdb.org/t/p/original/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg",
-  },
-  {
-    Id: "27205",
-    Title: "Inception",
-    Year: "2010",
-    Poster:
-      "https://image.tmdb.org/t/p/original/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg",
-  },
 
-  {
-    Id: "105",
-    Title: "Back to the Future",
-    Year: "1985",
-    Poster:
-      "https://image.tmdb.org/t/p/original/fNOH9f1aA7XRTzl1sAOx9iF553Q.jpg",
-  },
-];
 
-const selected_movie_list = [
-  {
-    Id: "769",
-    Title: "GoodFellas",
-    Year: "1990",
-    Poster:
-      "https://image.tmdb.org/t/p/original/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
-    duration: 120,
-    rating: 8.4,
-  },
-  {
-    Id: "120",
-    Title: "The Lord of the Rings",
-    Year: "2001",
-    Poster:
-      "https://image.tmdb.org/t/p/original/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg",
-    duration: 125,
-    rating: 8.8,
-  },
-];
+const getAverage = (array) =>
+  array.reduce((sum, value) => sum + value / array.length, 0);
 
 const api_key = "c3a794a3386a1e9481790de74e0b3f75";
 
@@ -70,6 +22,11 @@ export default function App() {
 
   function handleUnselectedMovie() {
     setSelectedMovie(null);
+  }
+
+  function handleAddToSelectedList(movie) {
+    setSelectedMovies((selectedMovies) => [...selectedMovies, movie]);
+    handleUnselectedMovie();
   }
 
   useEffect(
@@ -133,14 +90,17 @@ export default function App() {
           {error && <ErrorMessage message={error} />}
         </ListContainer>
         <ListContainer>
-          <Summary selectedMovies={selectedMovies} />
-          <MyMovieList selectedMovies={selectedMovies} />
-
-          {selectedMovie && (
+          {selectedMovie ? (
             <MovieDetails
               selectedMovie={selectedMovie}
               onUnselectedMovie={handleUnselectedMovie}
+              onAddSelectedMovie={handleAddToSelectedList}
             />
+          ) : (
+            <>
+              <Summary selectedMovies={selectedMovies} />
+              <MyMovieList selectedMovies={selectedMovies} />
+            </>
           )}
         </ListContainer>
       </Main>
@@ -250,20 +210,24 @@ function MovieList({ movies, onSelectedMovie, selectedMovieStyle }) {
   );
 }
 
-function MovieDetails({ selectedMovie, onUnselectedMovie }) {
+function MovieDetails({
+  selectedMovie,
+  onUnselectedMovie,
+  onAddSelectedMovie,
+}) {
   const [movie, setMovie] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(
     function () {
       async function getMovieDetails() {
-        setLoading(true)
+        setLoading(true);
         const res = await fetch(
           `https://api.themoviedb.org/3/movie/${selectedMovie}?api_key=${api_key}`
         );
         const data = await res.json();
         setMovie(data);
-        setLoading(false)
+        setLoading(false);
       }
       getMovieDetails();
     },
@@ -314,6 +278,12 @@ function MovieDetails({ selectedMovie, onUnselectedMovie }) {
                       </span>
                     ))}
                 </p>
+                <button
+                  onClick={() => onAddSelectedMovie(movie)}
+                  className="btn btn-primary me-1"
+                >
+                  Listeye Ekle
+                </button>
                 <button onClick={onUnselectedMovie} className="btn btn-danger">
                   Temizle
                 </button>
@@ -341,7 +311,7 @@ function Movie({ movie, onSelectedMovie, selectedMovieStyle }) {
             movie.poster_path
           }
           alt={movie.title}
-          className="card-img-top"
+          className="img-fluid rounded"
         />
         <div className="card-body">
           <h6>{movie.title}</h6>
@@ -356,14 +326,8 @@ function Movie({ movie, onSelectedMovie, selectedMovieStyle }) {
 }
 
 function Summary({ selectedMovies }) {
-  const avrRating = selectedMovies.reduce(
-    (acc, cur) => acc + cur.rating / selectedMovies.length,
-    0
-  );
-  const avrDuration = selectedMovies.reduce(
-    (acc, cur) => acc + cur.duration / selectedMovies.length,
-    0
-  );
+  const avrRating = getAverage(selectedMovies.map((m) => m.vote_average));
+  const avrDuration = getAverage(selectedMovies.map((m) => m.runtime));
 
   return (
     <div className="card mb-2">
@@ -388,7 +352,7 @@ function MyMovieList({ selectedMovies }) {
   return (
     <>
       {selectedMovies.map((selectedMovie) => (
-        <MyListMovie selectedMovie={selectedMovie} key={selectedMovie.Id} />
+        <MyListMovie selectedMovie={selectedMovie} key={selectedMovie.id} />
       ))}
     </>
   );
@@ -396,13 +360,16 @@ function MyMovieList({ selectedMovies }) {
 
 function MyListMovie({ selectedMovie }) {
   return (
-    <div className="card mb-2" key={selectedMovie.Id}>
+    <div className="card mb-2" key={selectedMovie.id}>
       <div className="row">
         <div className="col-4">
           <img
-            src={selectedMovie.Poster}
-            alt={selectedMovie.Title}
-            className="img-fluid rounded-start"
+            src={
+              `https://media.themoviedb.org/t/p/w440_and_h660_face` +
+              selectedMovie.poster_path
+            }
+            alt={selectedMovie.title}
+            className="img-fluid rounded"
           />
         </div>
         <div className="col-8">
@@ -411,11 +378,11 @@ function MyListMovie({ selectedMovie }) {
             <div className="d-flex justify-content-between">
               <p>
                 <i className="bi bi-star-fill text-warning me-1"></i>
-                <span>{selectedMovie.rating}</span>
+                <span>{selectedMovie.vote_average}</span>
               </p>
               <p>
                 <i className="bi bi-hourglass text-warning me-1"></i>
-                <span>{selectedMovie.duration} Dk</span>
+                <span>{selectedMovie.runtime} Dk</span>
               </p>
             </div>
           </div>
