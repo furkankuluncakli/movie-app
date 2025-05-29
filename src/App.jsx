@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
+import StarRating from "./StarRating";
 
 const getAverage = (array) =>
   array.reduce((sum, value) => sum + value / array.length, 0);
@@ -290,14 +291,21 @@ function MovieDetails({
                     ))}
                 </p>
                 {!isAddedToList ? (
-                  <button
-                    onClick={() => onAddSelectedMovie(movie)}
-                    className="btn btn-primary me-1"
-                  >
-                    Listeye Ekle
-                  </button>
+                  <>
+                    <div className="my-4">
+                      <StarRating maxRating={5} size={20} />
+                    </div>
+                    <button
+                      onClick={() => onAddSelectedMovie(movie)}
+                      className="btn btn-primary me-1"
+                    >
+                      Listeye Ekle
+                    </button>
+                  </>
                 ) : (
-                  <p className="alert text-danger">Filmi zaten listeye eklediniz.</p>
+                  <p className="alert text-danger">
+                    Filmi zaten listeye eklediniz.
+                  </p>
                 )}
 
                 <button onClick={onUnselectedMovie} className="btn btn-danger">

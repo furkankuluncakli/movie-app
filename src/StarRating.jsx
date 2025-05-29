@@ -14,7 +14,7 @@ const itemContainerStyle = {
 
 const textStyle = {
   margin: "0",
-  fontSize: "1.5rem",
+  fontSize: "1rem",
 };
 
 StarRating.propTypes = {
@@ -23,11 +23,11 @@ StarRating.propTypes = {
   size: PropTypes.number,
 };
 
-export default function StarRating(
-  { maxRating = 5 },
+export default function StarRating({
+  maxRating = 5,
   color = "#fcc419",
-  size = 48
-) {
+  size = 48,
+}) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   return (
