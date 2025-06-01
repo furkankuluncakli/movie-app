@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 import StarRating from "./StarRating";
+import useMovies from "./hooks/useMovies";
+import { useEffect, useState } from "react";
+import useMovieDetails from "./hooks/useMovieDetails";
+import useLocalStorage from "./hooks/useLocalStorage";
 
 const getAverage = (array) =>
   array.reduce((sum, value) => sum + value / array.length, 0);
@@ -9,23 +12,19 @@ const api_key = "c3a794a3386a1e9481790de74e0b3f75";
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [selectedMovies, setSelectedMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [selectedMovies, setSelectedMovies] = useLocalStorage([], "selectedMovies")
   const [selectedMovie, setSelectedMovie] = useState(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [total_results, setTotalResults] = useState(0);
-
-  function nextPage() {
-    setCurrentPage(currentPage + 1);
-  }
-
-  function previousPage() {
-    setCurrentPage(currentPage - 1);
-  }
+  const {
+    movies,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    total_results,
+    nextPage,
+    previousPage,
+  } = useMovies(query);
 
   function handleSelectedMovie(id) {
     setSelectedMovie((selectedMovie) => (selectedMovie === id ? null : id));
@@ -45,61 +44,6 @@ export default function App() {
       selectedMovies.filter((m) => m.id !== id)
     );
   }
-
-  useEffect(
-    function () {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      async function getMovies(page) {
-        try {
-          setLoading(true);
-          setError("");
-          const res = await fetch(
-            `https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${query}&page=${page}`,
-            { signal: signal }
-          );
-
-          if (!res.ok) {
-            throw new Error("Bilinmeyen bir hata oluştu.");
-          }
-
-          const data = await res.json();
-
-          if (data.total_results === 0) {
-            throw new Error("Film bulunamadı");
-          }
-
-          setMovies(data.results);
-          setLoading(false);
-          setTotalPages(data.total_pages);
-          setTotalResults(data.total_results);
-        } catch (error) {
-          if (error.name === "AbortError") {
-            console.log("aborted...");
-          } else {
-            setError(error.message);
-          }
-        }
-
-        setLoading(false);
-      }
-
-      if (query.length < 4) {
-        setMovies([]);
-        setError("");
-
-        return;
-      }
-
-      getMovies(currentPage);
-
-      return () => {
-        controller.abort();
-      };
-    },
-    [query, currentPage]
-  );
 
   return (
     <>
@@ -226,7 +170,7 @@ function Search({ query, setQuery }) {
 function NavSearchResult({ total_results }) {
   return (
     <>
-      {total_results > 1 ? (
+      {total_results >= 1 ? (
         <div className="col-4 text-end">
           <strong>{total_results}</strong> kayıt bulundu
         </div>
@@ -290,25 +234,12 @@ function MovieDetails({
   onAddSelectedMovie,
   selectedMovies,
 }) {
-  const [movie, setMovie] = useState({});
-  const [loading, setLoading] = useState(false);
+  
   const [userRating, setUserRating] = useState("");
 
-  useEffect(
-    function () {
-      async function getMovieDetails() {
-        setLoading(true);
-        const res = await fetch(
-          `https://api.themoviedb.org/3/movie/${selectedMovie}?api_key=${api_key}`
-        );
-        const data = await res.json();
-        setMovie(data);
-        setLoading(false);
-      }
-      getMovieDetails();
-    },
-    [selectedMovie]
-  );
+  const {movie,loading} = useMovieDetails(selectedMovie)
+
+  
 
   const isAddedToList = selectedMovies.map((m) => m.id).includes(selectedMovie);
   const selectedMovieUserRating = selectedMovies.find(
